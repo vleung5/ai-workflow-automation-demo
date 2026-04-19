@@ -1,138 +1,110 @@
-"""
-Main FastAPI application for workflow automation
-"""
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from s3_polling import initialize_s3_polling, get_s3_polling_service
 import asyncio
-import uuid
-import logging
-from pathlib import Path
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 
-from models import JobStatusResponse, JobStatus
-from tasks import processor
-from config import config
+polling_task: asyncio.Task = None
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Create uploads directory
-Path(config.UPLOAD_DIR).mkdir(exist_ok=True)
-Path("templates").mkdir(exist_ok=True)
-
-# Initialize FastAPI app
-app = FastAPI(
-    title="AI Workflow Automation Demo",
-    description="End-to-end example of replacing manual workflows with AI-assisted pipelines",
-    version="1.0.0"
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize processor on startup"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("🚀 Starting application...")
     await processor.initialize()
-    logger.info("✓ Application initialized")
-
-@app.get("/")
-async def root():
-    """Serve the web UI"""
-    return FileResponse("templates/index.html")
-
-@app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    """Upload and process a CSV file"""
-    if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
-    content = await file.read()
-    csv_content = content.decode("utf-8")
-    job_id = str(uuid.uuid4())
-    
-    asyncio.create_task(processor.process_csv_data(csv_content, job_id))
-    logger.info(f"✓ Job {job_id} queued for processing")
-    
-    return {
-        "job_id": job_id,
-        "message": "File uploaded successfully. Processing has started.",
-        "status_url": f"/status/{job_id}",
-        "results_url": f"/results/{job_id}"
-    }
-
-@app.get("/status/{job_id}")
-async def get_status(job_id: str):
-    """Get the current status of a processing job"""
-    job = processor.get_job_status(job_id)
-    
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    progress_percent = (job.processed_records / job.total_records * 100) if job.total_records > 0 else 0
-    
-    return JobStatusResponse(
-        job_id=job_id,
-        status=job.status,
-        processed_records=job.processed_records,
-        total_records=job.total_records,
-        progress_percent=progress_percent,
-        estimated_remaining_seconds=None
-    )
-
-@app.get("/results/{job_id}")
-async def get_results(job_id: str):
-    """Get the full results of a completed job"""
-    job = processor.get_job_status(job_id)
-    
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    if job.status.value == "processing":
-        raise HTTPException(status_code=202, detail="Job still processing")
-    
-    if job.status.value == "failed":
-        raise HTTPException(status_code=500, detail=f"Job failed: {job.error_message}")
-    
-    return {
-        "job_id": job_id,
-        "status": job.status.value,
-        "summary": {
-            "total_records": job.total_records,
-            "processed_records": job.processed_records,
-            "failed_records": job.failed_records,
-            "success_rate": (job.processed_records / job.total_records * 100) if job.total_records > 0 else 0
-        },
-        "statistics": job.statistics,
-        "results": [
-            {
-                "id": r.id,
-                "original_data": r.original_data,
-                "validation": r.validation.dict(),
-                "classification": r.classification.dict(),
-                "summary": r.summary,
-                "processing_time_ms": r.processing_time_ms
-            }
-            for r in job.results
-        ],
-        "processing_duration_seconds": (
-            (job.completed_at - job.started_at).total_seconds()
-            if job.completed_at else None
+    # Initialize S3 polling
+    s3_bucket = config.S3_BUCKET
+    if s3_bucket:
+        logger.info(f"Initializing S3 polling service for bucket: {s3_bucket}")
+        s3_service = initialize_s3_polling(
+            bucket_name=s3_bucket,
+            prefix=config.S3_PREFIX,
+            region=config.AWS_REGION
         )
+        
+        if config.ENV == "dev":
+            await s3_service.create_sample_file()
+        
+        # Set polling interval
+        s3_service.polling_interval = config.S3_POLLING_INTERVAL
+        
+        # Start polling
+        global polling_task
+        polling_task = asyncio.create_task(
+            s3_service.start_polling(processor)
+        )
+        logger.info("✓ S3 polling service started")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down application...")
+    s3_service = get_s3_polling_service()
+    if s3_service:
+        await s3_service.stop_polling()
+        if polling_task and not polling_task.done():
+            polling_task.cancel()
+    
+    logger.info("✓ Application shutdown complete")
+
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/s3/status")
+async def get_s3_polling_status():
+    s3_service = get_s3_polling_service()
+    if not s3_service:
+        return {"enabled": False, "message": "S3 polling service not initialized"}
+    
+    stats = await s3_service.get_processing_stats()
+    return {
+        "enabled": True,
+        "status": "running" if s3_service.is_running else "stopped",
+        "statistics": stats
     }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "ai-workflow-automation-demo"}
+@app.get("/s3/pending")
+async def get_pending_s3_files():
+    s3_service = get_s3_polling_service()
+    if not s3_service:
+        return {"pending_files": [], "message": "S3 polling service not initialized"}
+    
+    pending_files = await s3_service.get_pending_files()
+    return {"pending_files": pending_files, "count": len(pending_files)}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=config.API_HOST, port=config.API_PORT, log_level="info")
+@app.post("/s3/process")
+async def trigger_s3_processing():
+    s3_service = get_s3_polling_service()
+    if not s3_service:
+        return {"success": False, "message": "S3 polling service not initialized"}
+    
+    try:
+        pending_files = await s3_service.get_pending_files()
+        if not pending_files:
+            return {"success": False, "message": "No pending files to process"}
+        
+        file_key = pending_files[0]['key']
+        csv_content = await s3_service.read_file_from_s3(file_key)
+        
+        if csv_content:
+            job_id = file_key.replace('/', '_').replace('.csv', '')
+            job_result = await processor.process_csv_data(csv_content, job_id)
+            results_key = await s3_service.upload_results_to_s3(
+                job_result.dict(),
+                job_id
+            )
+            await s3_service.mark_file_as_processed(file_key, "success")
+            
+            return {
+                "success": True,
+                "job_id": job_id,
+                "file_key": file_key,
+                "results_key": results_key,
+                "message": "File processing triggered"
+            }
+        else:
+            await s3_service.mark_file_as_processed(file_key, "failed")
+            return {"success": False, "message": "Failed to read file from S3"}
+    
+    except Exception as e:
+        logger.error(f"Error triggering S3 processing: {str(e)}")
+        return {"success": False, "message": f"Error: {str(e)}"}
