@@ -1,0 +1,34 @@
+name: Lint
+
+on: workflow_dispatch
+
+jobs:
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Install ruff
+        run: uv tool install ruff
+
+      - name: Auto-fix with ruff
+        run: |
+          uv tool run ruff format src/ tests/ scripts/
+          uv tool run ruff check --fix src/ tests/ scripts/
+
+      - name: Check for remaining issues
+        run: |
+          uv tool run ruff format --check src/ tests/ scripts/
+          uv tool run ruff check src/ tests/ scripts/

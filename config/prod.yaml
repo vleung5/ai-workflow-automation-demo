@@ -1,0 +1,41 @@
+env: prod
+debug: false
+api:
+  host: "0.0.0.0"
+  port: 8000
+  log_level: WARNING
+
+processing:
+  max_workers: 8
+  queue_max_size: 500
+  max_file_size_mb: 1000
+
+s3:
+  bucket: ai-workflow-automation-prod
+  prefix: incoming/
+  polling_interval_seconds: 30
+
+aws:
+  region: us-east-1
+  secrets_manager_enabled: true
+
+datadog:
+  enabled: true
+  site: datadoghq.com
+  agent_host: datadog-agent
+  agent_port: 8126
+  service: ai-workflow-automation
+  version: "2.0.0"
+  env: prod
+  trace:
+    enabled: true
+    sample_rate: 1.0
+    debug: false
+  metrics:
+    enabled: true
+    namespace: ai_workflow
+  profiler:
+    enabled: true
+  logging:
+    json: true
+    correlation: true

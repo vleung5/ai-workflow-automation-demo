@@ -1,0 +1,180 @@
+version: '3.8'
+
+services:
+  # Datadog Agent
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    container_name: datadog-agent
+    environment:
+      - DD_AGENT_HOST=datadog-agent
+      - DD_DOGSTATSD_PORT=8125
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_APM_RECEIVER_PORT=8126
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=image:gcr.io/datadoghq/*
+      - DD_API_KEY=${DD_API_KEY:-your_api_key_here}
+      - DD_SITE=${DD_SITE:-datadoghq.com}
+      - DD_ENV=dev
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    ports:
+      - "8126:8126/tcp"  # APM receiver
+      - "8125:8125/udp"  # DogStatsD
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8125"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Development environment
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ai-workflow-automation-dev
+    depends_on:
+      - datadog-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=dev
+      - DEBUG=True
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=DEBUG
+      - AWS_SECRETS_MANAGER_ENABLED=False
+      # Datadog configuration
+      - DD_TRACE_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DATADOG_ENABLED=true
+      - DATADOG_AGENT_HOST=datadog-agent
+      - DATADOG_AGENT_PORT=8126
+      - DD_SERVICE=ai-workflow-automation
+      - DD_ENV=dev
+      - DD_VERSION=2.0.0
+      - DD_SAMPLE_RATE=0.1
+      - DD_TRACE_DEBUG=true
+      - DD_JSON_LOGGING=true
+      - DD_LOG_CORRELATION=true
+      - DD_PROFILER_ENABLED=false
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      com.datadoghq.ad.check_names: '["prometheus"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"prometheus_url": "http://%%host%%:8000/metrics"}]'
+
+  # Staging environment
+  app-stage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV: stage
+    container_name: ai-workflow-automation-stage
+    depends_on:
+      - datadog-agent
+    ports:
+      - "8001:8000"
+    environment:
+      - ENV=stage
+      - DEBUG=False
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+      - MAX_WORKERS=4
+      - AWS_REGION=us-east-1
+      - AWS_SECRETS_MANAGER_ENABLED=False
+      # Datadog configuration
+      - DD_TRACE_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DATADOG_ENABLED=true
+      - DATADOG_AGENT_HOST=datadog-agent
+      - DATADOG_AGENT_PORT=8126
+      - DD_SERVICE=ai-workflow-automation
+      - DD_ENV=stage
+      - DD_VERSION=2.0.0
+      - DD_SAMPLE_RATE=0.5
+      - DD_PROFILER_ENABLED=false
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    labels:
+      com.datadoghq.ad.check_names: '["prometheus"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"prometheus_url": "http://%%host%%:8000/metrics"}]'
+
+  # Production environment
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV: prod
+    container_name: ai-workflow-automation-prod
+    depends_on:
+      - datadog-agent
+    ports:
+      - "8002:8000"
+    environment:
+      - ENV=prod
+      - DEBUG=False
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=WARNING
+      - MAX_WORKERS=8
+      - AWS_REGION=us-east-1
+      - AWS_SECRETS_MANAGER_ENABLED=False
+      # Datadog configuration
+      - DD_TRACE_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DATADOG_ENABLED=true
+      - DATADOG_AGENT_HOST=datadog-agent
+      - DATADOG_AGENT_PORT=8126
+      - DD_SERVICE=ai-workflow-automation
+      - DD_ENV=prod
+      - DD_VERSION=2.0.0
+      - DD_SAMPLE_RATE=1.0
+      - DD_PROFILER_ENABLED=true
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    labels:
+      com.datadoghq.ad.check_names: '["prometheus"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"prometheus_url": "http://%%host%%:8000/metrics"}]'
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  app-data:
+    driver: local
