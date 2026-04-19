@@ -1,0 +1,5 @@
+fastapi
+celery
+pandas
+scikit-learn
+html2text
