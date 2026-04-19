@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Development environment
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ai-workflow-automation-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=dev
+      - DEBUG=True
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=DEBUG
+      - AWS_SECRETS_MANAGER_ENABLED=False
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Staging environment
+  app-stage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV: stage
+    container_name: ai-workflow-automation-stage
+    ports:
+      - "8001:8000"
+    environment:
+      - ENV=stage
+      - DEBUG=False
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+      - MAX_WORKERS=4
+      - AWS_REGION=us-east-1
+      - AWS_SECRETS_MANAGER_ENABLED=False
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Production environment (simulation)
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENV: prod
+    container_name: ai-workflow-automation-prod
+    ports:
+      - "8002:8000"
+    environment:
+      - ENV=prod
+      - DEBUG=False
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=WARNING
+      - MAX_WORKERS=8
+      - AWS_REGION=us-east-1
+      - AWS_SECRETS_MANAGER_ENABLED=False
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  app-data:
+    driver: local
