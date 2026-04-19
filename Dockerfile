@@ -19,7 +19,8 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/root/.local/bin:$PATH
+    PATH=/root/.local/bin:$PATH \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
@@ -35,7 +36,8 @@ COPY --from=builder /root/.local /root/.local
 COPY . .
 
 # Create uploads directory
-RUN mkdir -p uploads
+RUN mkdir -p uploads templates \
+    && chmod +x deploy/docker/entrypoint.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -44,5 +46,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE ${API_PORT:-8000}
 
-# Run the application
-CMD ["python", "main.py"]
+ENTRYPOINT ["deploy/docker/entrypoint.sh"]
+CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

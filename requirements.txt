@@ -1,5 +1,14 @@
-datadog~=1.12.0     # APM client
-ddtrace~=1.12.0     #Python APM tracer
-python-json-logger  #JSON logging
-logging==1.0.0
-monitoring==1.0.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+aiofiles>=23.0.0
+httpx>=0.25.0
+boto3>=1.28.0
+datadog~=1.12.0
+ddtrace~=1.12.0
+python-json-logger>=2.0.0
+structlog>=23.0.0
+celery>=5.3.0
+redis>=5.0.0
+pyyaml>=6.0
