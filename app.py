@@ -108,3 +108,12 @@ async def trigger_s3_processing():
     except Exception as e:
         logger.error(f"Error triggering S3 processing: {str(e)}")
         return {"success": False, "message": f"Error: {str(e)}"}
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
