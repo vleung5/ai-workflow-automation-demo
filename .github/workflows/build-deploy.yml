@@ -1,13 +1,15 @@
 name: Build and Deploy to ECS
 
-on:
-  push:
-    branches:
-      - main
-      - init_branch
-  pull_request:
-    branches:
-      - main
+on: workflow_dispatch
+
+#on:
+#  push:
+#    branches:
+#      - main
+#      - init_branch
+#  pull_request:
+#    branches:
+#      - main
 
 env:
   AWS_REGION: us-east-1
