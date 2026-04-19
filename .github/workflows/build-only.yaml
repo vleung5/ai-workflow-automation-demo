@@ -1,13 +1,14 @@
-name: Lint, Test, and Build Docker
+name: Build Only
 
 on:
   push:
     branches:
       - main
-      - init_branch
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
 
 jobs:
   build:
