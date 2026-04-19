@@ -1,4 +1,5 @@
 """Results endpoints"""
+
 import logging
 
 from fastapi import APIRouter
@@ -38,9 +39,7 @@ async def get_results(job_id: str):
             "processed_records": job.processed_records,
             "failed_records": job.failed_records,
             "success_rate": (
-                (job.processed_records / job.total_records * 100)
-                if job.total_records > 0
-                else 0
+                (job.processed_records / job.total_records * 100) if job.total_records > 0 else 0
             ),
         },
         "statistics": job.statistics,
@@ -56,9 +55,7 @@ async def get_results(job_id: str):
             for r in job.results
         ],
         "processing_duration_seconds": (
-            (job.completed_at - job.started_at).total_seconds()
-            if job.completed_at
-            else None
+            (job.completed_at - job.started_at).total_seconds() if job.completed_at else None
         ),
     }
 

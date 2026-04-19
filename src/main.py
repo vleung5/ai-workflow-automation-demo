@@ -1,4 +1,5 @@
 """FastAPI entry point"""
+
 import asyncio
 import logging
 from contextlib import asynccontextmanager
@@ -103,42 +104,49 @@ async def root():
 @app.get("/status/{job_id}")
 async def legacy_status(job_id: str):
     from src.api.v1.status import get_status
+
     return await get_status(job_id)
 
 
 @app.get("/results/{job_id}")
 async def legacy_results(job_id: str):
     from src.api.v1.results import get_results
+
     return await get_results(job_id)
 
 
 @app.get("/s3/status")
 async def legacy_s3_status():
     from src.api.v1.s3_routes import get_s3_polling_status
+
     return await get_s3_polling_status()
 
 
 @app.get("/s3/pending")
 async def legacy_s3_pending():
     from src.api.v1.s3_routes import get_pending_s3_files
+
     return await get_pending_s3_files()
 
 
 @app.post("/s3/process")
 async def legacy_s3_process():
     from src.api.v1.s3_routes import trigger_s3_processing
+
     return await trigger_s3_processing()
 
 
 @app.get("/jobs")
 async def legacy_jobs():
     from src.api.v1.csv_ingestion import list_jobs
+
     return await list_jobs()
 
 
 @app.get("/metrics")
 async def legacy_metrics():
     from src.api.v1.results import get_metrics
+
     return await get_metrics()
 
 

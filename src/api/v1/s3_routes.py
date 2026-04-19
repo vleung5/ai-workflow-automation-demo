@@ -1,4 +1,5 @@
 """S3 polling status and trigger endpoints"""
+
 import logging
 
 from fastapi import APIRouter

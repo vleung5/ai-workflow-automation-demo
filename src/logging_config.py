@@ -1,4 +1,5 @@
 """Logging configuration - separated from general config"""
+
 import logging
 import logging.config
 from typing import Optional
@@ -14,6 +15,7 @@ def setup_logging(log_level: Optional[str] = None) -> None:
     if config.DD_JSON_LOGGING:
         try:
             from pythonjsonlogger import jsonlogger  # noqa: F401
+
             formatter_class = "pythonjsonlogger.jsonlogger.JsonFormatter"
         except ImportError:
             formatter_class = "logging.Formatter"

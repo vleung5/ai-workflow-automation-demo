@@ -1,4 +1,5 @@
 """Enums for the workflow automation pipeline"""
+
 from enum import Enum
 
 
@@ -23,6 +24,7 @@ class JobStatus(str, Enum):
 
 class ProcessingState(str, Enum):
     """Fine-grained processing state for queue workers"""
+
     QUEUED = "queued"
     VALIDATING = "validating"
     CLASSIFYING = "classifying"

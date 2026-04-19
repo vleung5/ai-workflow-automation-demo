@@ -1,5 +1,5 @@
 """Tests for classification logic"""
-import pytest
+
 from src.core.classifier import classify_record, generate_summary
 from src.models.enums import PriorityLevel, SentimentType
 
@@ -32,9 +32,14 @@ def test_classify_positive_sentiment():
 
 
 def test_generate_summary_urgent():
-    record = {"description": "Critical issue needs immediate attention.", "category": "issue", "priority": "urgent"}
+    record = {
+        "description": "Critical issue needs immediate attention.",
+        "category": "issue",
+        "priority": "urgent",
+    }
     from src.models.enums import PriorityLevel, SentimentType
     from src.models.schemas import RecordClassification
+
     classification = RecordClassification(
         priority=PriorityLevel.URGENT,
         confidence=0.9,
@@ -47,6 +52,10 @@ def test_generate_summary_urgent():
 
 
 def test_classify_unknown_category_defaults_to_inquiry():
-    record = {"description": "Some description text here", "category": "xyz_unknown", "priority": "normal"}
+    record = {
+        "description": "Some description text here",
+        "category": "xyz_unknown",
+        "priority": "normal",
+    }
     result = classify_record(record)
     assert result.category == "inquiry"

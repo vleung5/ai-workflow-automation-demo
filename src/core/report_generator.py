@@ -1,4 +1,5 @@
 """Report creation from processed job results"""
+
 import logging
 from typing import Dict, Any, List
 from datetime import datetime
@@ -59,10 +60,6 @@ def _extract_highlights(results: List[ProcessedRecord]) -> Dict[str, Any]:
     return {
         "negative_feedback_count": len(negative),
         "urgent_items_count": len(urgent),
-        "sample_urgent": [
-            {"id": r.id, "summary": r.summary} for r in urgent[:5]
-        ],
-        "sample_negative": [
-            {"id": r.id, "summary": r.summary} for r in negative[:5]
-        ],
+        "sample_urgent": [{"id": r.id, "summary": r.summary} for r in urgent[:5]],
+        "sample_negative": [{"id": r.id, "summary": r.summary} for r in negative[:5]],
     }

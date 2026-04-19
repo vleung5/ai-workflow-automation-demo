@@ -1,4 +1,5 @@
 """Authentication, logging, and CORS middleware"""
+
 import logging
 import time
 from typing import Callable
@@ -36,9 +37,7 @@ class DatadogAPMMiddleware(BaseHTTPMiddleware):
                 extra={
                     "status_code": response.status_code,
                     "duration_ms": duration * 1000,
-                    "tags": get_datadog_tags(
-                        {"method": request.method, "path": request.url.path}
-                    ),
+                    "tags": get_datadog_tags({"method": request.method, "path": request.url.path}),
                 },
             )
             return response

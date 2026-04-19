@@ -1,4 +1,5 @@
 """Centralized configuration management"""
+
 import os
 import logging
 from typing import Dict, Any
@@ -78,7 +79,9 @@ class EnvironmentConfig:
 
     # Datadog Profiler Configuration
     DD_PROFILER_ENABLED = os.getenv("DD_PROFILER_ENABLED", "False").lower() == "true"
-    DD_PROFILER_SERVICE = os.getenv("DD_PROFILER_SERVICE", os.getenv("DD_SERVICE", "ai-workflow-automation"))
+    DD_PROFILER_SERVICE = os.getenv(
+        "DD_PROFILER_SERVICE", os.getenv("DD_SERVICE", "ai-workflow-automation")
+    )
 
     # Datadog Logging Configuration
     DD_JSON_LOGGING = os.getenv("DD_JSON_LOGGING", "True").lower() == "true"

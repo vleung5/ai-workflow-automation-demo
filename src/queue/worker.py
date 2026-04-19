@@ -1,4 +1,5 @@
 """Worker startup script"""
+
 import logging
 
 from src.queue.celery_app import celery_app

@@ -1,4 +1,5 @@
 """API v1 router setup"""
+
 from fastapi import APIRouter
 
 from src.api.v1 import csv_ingestion, status, results

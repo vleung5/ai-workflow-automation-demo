@@ -1,9 +1,8 @@
 """Common helper utilities"""
+
 import hashlib
-import time
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
 
 
 def generate_job_id(prefix: str = "job") -> str:

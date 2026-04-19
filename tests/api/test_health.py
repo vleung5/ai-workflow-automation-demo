@@ -1,5 +1,5 @@
 """Tests for health check endpoint"""
-import pytest
+
 from unittest.mock import patch
 
 

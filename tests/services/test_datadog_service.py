@@ -1,11 +1,10 @@
 """Tests for Datadog service"""
-import pytest
-from unittest.mock import patch, MagicMock
+
+from unittest.mock import patch
 
 from src.services.datadog_service import (
     get_datadog_tags,
     send_datadog_event,
-    send_datadog_metric,
     WorkflowMonitor,
 )
 

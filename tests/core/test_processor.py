@@ -1,4 +1,5 @@
 """Tests for the processing pipeline"""
+
 import asyncio
 import pytest
 from src.core.processor import WorkflowProcessor

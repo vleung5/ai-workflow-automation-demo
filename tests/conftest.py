@@ -1,7 +1,7 @@
 """Pytest fixtures shared across all tests"""
+
 import asyncio
 import pytest
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="session")

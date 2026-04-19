@@ -1,4 +1,5 @@
 """S3 service - polling and file management"""
+
 import asyncio
 import json
 import logging
@@ -11,9 +12,7 @@ logger = logging.getLogger(__name__)
 class S3PollingService:
     """Service for polling and reading files from S3 bucket"""
 
-    def __init__(
-        self, bucket_name: str, prefix: str = "incoming/", region: str = "us-east-1"
-    ):
+    def __init__(self, bucket_name: str, prefix: str = "incoming/", region: str = "us-east-1"):
         self.bucket_name = bucket_name
         self.prefix = prefix
         self.region = region
@@ -94,9 +93,7 @@ class S3PollingService:
             logger.error(f"Error moving file {file_key}: {str(e)}")
             return False
 
-    async def upload_results_to_s3(
-        self, results: Dict[str, Any], job_id: str
-    ) -> Optional[str]:
+    async def upload_results_to_s3(self, results: Dict[str, Any], job_id: str) -> Optional[str]:
         """Upload processing results JSON to S3"""
         if not self.s3_client:
             return None
@@ -143,9 +140,7 @@ class S3PollingService:
                         if csv_content:
                             job_id = file_key.replace("/", "_").replace(".csv", "")
                             job_result = await processor.process_csv_data(csv_content, job_id)
-                            results_key = await self.upload_results_to_s3(
-                                job_result.dict(), job_id
-                            )
+                            results_key = await self.upload_results_to_s3(job_result.dict(), job_id)
                             await self.mark_file_as_processed(file_key, "success")
                             if callback:
                                 await callback(job_id, "success", results_key)

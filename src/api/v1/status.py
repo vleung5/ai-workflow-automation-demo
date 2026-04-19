@@ -1,4 +1,5 @@
 """Job status endpoints"""
+
 import logging
 
 from fastapi import APIRouter

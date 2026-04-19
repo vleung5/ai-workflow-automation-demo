@@ -1,11 +1,11 @@
 """Health check endpoints"""
+
 import logging
 
 from fastapi import APIRouter
 
 from src.config import config
 from src.services.s3_service import get_s3_polling_service
-from src.services.datadog_service import initialize_datadog
 
 router = APIRouter(tags=["health"])
 logger = logging.getLogger(__name__)

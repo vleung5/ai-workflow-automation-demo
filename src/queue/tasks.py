@@ -1,4 +1,5 @@
 """Celery task definitions"""
+
 import asyncio
 import logging
 

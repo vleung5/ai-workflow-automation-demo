@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Generate sample CSV files for testing"""
+
 import csv
-import os
 import random
 from datetime import date, timedelta
-
 
 CATEGORIES = ["inquiry", "complaint", "feedback", "request", "issue"]
 PRIORITIES = ["low", "normal", "urgent"]

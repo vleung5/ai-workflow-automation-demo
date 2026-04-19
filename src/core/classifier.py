@@ -1,4 +1,5 @@
 """AI classification and summarization - decoupled from FastAPI"""
+
 import logging
 from typing import Dict, Any
 

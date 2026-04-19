@@ -1,4 +1,5 @@
 """Data validation rules - decoupled from FastAPI"""
+
 import logging
 from typing import Dict, Any, List
 
@@ -34,9 +35,7 @@ def validate_record(record: Dict[str, Any], record_id: int = 0) -> ValidationRes
     # Validate description length
     desc = str(record.get("description", "")).strip()
     if desc and len(desc) < MIN_DESCRIPTION_LENGTH:
-        errors.append(
-            f"Description too short (minimum {MIN_DESCRIPTION_LENGTH} characters)"
-        )
+        errors.append(f"Description too short (minimum {MIN_DESCRIPTION_LENGTH} characters)")
     elif len(desc) > MAX_DESCRIPTION_LENGTH:
         warnings.append(f"Description is very long (>{MAX_DESCRIPTION_LENGTH} chars)")
 

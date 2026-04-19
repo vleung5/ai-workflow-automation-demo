@@ -1,4 +1,5 @@
 """LLM API calls - OpenAI/Claude integration"""
+
 import logging
 from typing import Dict, Any, Optional
 
@@ -44,7 +45,9 @@ class LLMService:
                 messages=[
                     {
                         "role": "system",
-                        "content": f"Summarize the following text in {max_length} characters or fewer.",
+                        "content": (
+                            f"Summarize the following text in {max_length} characters or fewer."
+                        ),
                     },
                     {"role": "user", "content": text},
                 ],

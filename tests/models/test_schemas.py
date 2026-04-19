@@ -1,4 +1,5 @@
 """Tests for Pydantic schemas"""
+
 import pytest
 from src.models.schemas import ValidationResult, RecordClassification, JobResult
 from src.models.enums import PriorityLevel, SentimentType, JobStatus

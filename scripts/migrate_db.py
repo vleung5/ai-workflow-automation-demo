@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Database migration placeholder script"""
+
 import logging
 
 logging.basicConfig(level=logging.INFO)

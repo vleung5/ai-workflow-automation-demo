@@ -1,6 +1,4 @@
 """Tests for job status endpoint"""
-import pytest
-from unittest.mock import MagicMock
 
 
 def test_status_not_found():
@@ -29,6 +27,7 @@ def test_status_found():
     mock_job.total_records = 5
 
     from src.api.v1.status import get_status
+
     with patch("src.api.v1.status.processor") as mock_proc:
         mock_proc.get_job_status.return_value = mock_job
         result = asyncio.get_event_loop().run_until_complete(get_status("job_abc"))

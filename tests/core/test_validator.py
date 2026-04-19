@@ -1,5 +1,5 @@
 """Tests for data validation logic"""
-import pytest
+
 from src.core.validator import validate_record
 
 

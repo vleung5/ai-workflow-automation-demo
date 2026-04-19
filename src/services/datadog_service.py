@@ -1,4 +1,5 @@
 """Datadog monitoring and APM service"""
+
 import logging
 import time
 from typing import Dict, Any, Optional, List
@@ -74,9 +75,7 @@ def send_datadog_event(
         from datadog import api
 
         event_tags = list(tags or [])
-        event_tags.extend(
-            [f"{k}:{v}" for k, v in config.get_datadog_tags().items()]
-        )
+        event_tags.extend([f"{k}:{v}" for k, v in config.get_datadog_tags().items()])
         api.Event.create(
             title=title,
             text=text,
@@ -169,9 +168,7 @@ class WorkflowMonitor:
         send_datadog_metric("records.successful", self._record_stats["successful"], "gauge")
         send_datadog_metric("records.failed", self._record_stats["failed"], "gauge")
         if total > 0:
-            send_datadog_metric(
-                "records.success_rate", (successful / total) * 100, "gauge"
-            )
+            send_datadog_metric("records.success_rate", (successful / total) * 100, "gauge")
 
     def get_job_metrics(self) -> Dict[str, Any]:
         if not self._job_times:
@@ -179,9 +176,7 @@ class WorkflowMonitor:
         completed = [j for j in self._job_times.values() if j.get("status") == "completed"]
         failed = [j for j in self._job_times.values() if j.get("status") == "failed"]
         avg_duration = (
-            sum(j.get("duration", 0) for j in completed) / len(completed)
-            if completed
-            else 0.0
+            sum(j.get("duration", 0) for j in completed) / len(completed) if completed else 0.0
         )
         total = len(self._job_times)
         return {
