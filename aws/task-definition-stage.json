@@ -1,0 +1,72 @@
+[
+  {
+    "name": "ai-workflow-automation-stage",
+    "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ai-workflow-automation-stage:latest",
+    "cpu": 256,
+    "memory": 512,
+    "essential": true,
+    "portMappings": [
+      {
+        "containerPort": 8000,
+        "hostPort": 8000,
+        "protocol": "tcp"
+      }
+    ],
+    "environment": [
+      {
+        "name": "ENV",
+        "value": "stage"
+      },
+      {
+        "name": "DEBUG",
+        "value": "false"
+      },
+      {
+        "name": "API_HOST",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "API_PORT",
+        "value": "8000"
+      },
+      {
+        "name": "LOG_LEVEL",
+        "value": "INFO"
+      },
+      {
+        "name": "MAX_WORKERS",
+        "value": "4"
+      },
+      {
+        "name": "AWS_REGION",
+        "value": "us-east-1"
+      },
+      {
+        "name": "AWS_SECRETS_MANAGER_ENABLED",
+        "value": "true"
+      },
+      {
+        "name": "SECRET_NAME",
+        "value": "ai-workflow-automation/stage/secrets"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/ai-workflow-automation-stage",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
+    "healthCheck": {
+      "command": [
+        "CMD-SHELL",
+        "curl -f http://localhost:8000/health || exit 1"
+      ],
+      "interval": 30,
+      "timeout": 5,
+      "retries": 3,
+      "startPeriod": 10
+    }
+  }
+]

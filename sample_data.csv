@@ -1,0 +1,13 @@
+id,date,description,category,priority
+1,2026-04-01,Customer complaints about product delivery,Customer Complaint,High
+2,2026-04-02,Feature request for a new UI design,Feature Request,Medium
+3,2026-04-03,Urgent issue with payment processing,Urgent Issue,Critical
+4,2026-04-04,Feedback on the latest update,Feedback,Low
+5,2026-04-05,Customer inquiries regarding subscription,Customer Inquiry,Medium
+6,2026-04-06,Feature request for additional reporting capabilities,Feature Request,Medium
+7,2026-04-07,Issue with password reset functionality,Urgent Issue,High
+8,2026-04-08,Complaints about customer support response time,Customer Complaint,High
+9,2026-04-09,Feedback on new features,Feedback,Low
+10,2026-04-10,Request for integration with third-party tools,Feature Request,Medium
+11,2026-04-11,Urgent issue with server downtime,Urgent Issue,Critical
+12,2026-04-12,Inquiry about billing issues,Customer Inquiry,Medium
