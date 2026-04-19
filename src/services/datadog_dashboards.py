@@ -1,8 +1,7 @@
 """
 Datadog Dashboard Configuration (create via API)
 """
-import json
-from datadog_config import DatadogConfig
+from src.config import config
 
 DASHBOARD_JSON = {
     "title": "AI Workflow Automation - Performance Monitor",
@@ -18,11 +17,11 @@ DASHBOARD_JSON = {
                 "requests": [
                     {
                         "q": "avg:s3.pending_files{service:ai_workflow_automation}",
-                        "aggregator": "last"
+                        "aggregator": "last",
                     }
                 ],
-                "custom_links": []
-            }
+                "custom_links": [],
+            },
         },
         {
             "id": 2,
@@ -33,10 +32,10 @@ DASHBOARD_JSON = {
                 "requests": [
                     {
                         "q": "avg:job.throughput{service:ai_workflow_automation}",
-                        "display_type": "line"
+                        "display_type": "line",
                     }
-                ]
-            }
+                ],
+            },
         },
         {
             "id": 3,
@@ -47,10 +46,10 @@ DASHBOARD_JSON = {
                 "requests": [
                     {
                         "q": "avg:job.duration{service:ai_workflow_automation}",
-                        "display_type": "line"
+                        "display_type": "line",
                     }
-                ]
-            }
+                ],
+            },
         },
         {
             "id": 4,
@@ -62,8 +61,8 @@ DASHBOARD_JSON = {
                     {
                         "q": "avg:records.success_rate{service:ai_workflow_automation}",
                     }
-                ]
-            }
+                ],
+            },
         },
         {
             "id": 5,
@@ -75,18 +74,18 @@ DASHBOARD_JSON = {
                     {
                         "q": "sum:s3.operation.read{service:ai_workflow_automation}.as_count()",
                         "display_type": "bars",
-                        "legend": {"show": True}
+                        "legend": {"show": True},
                     },
                     {
                         "q": "sum:s3.operation.write{service:ai_workflow_automation}.as_count()",
-                        "display_type": "bars"
+                        "display_type": "bars",
                     },
                     {
                         "q": "sum:s3.operation.failed{service:ai_workflow_automation}.as_count()",
-                        "display_type": "bars"
-                    }
-                ]
-            }
+                        "display_type": "bars",
+                    },
+                ],
+            },
         },
         {
             "id": 6,
@@ -97,10 +96,10 @@ DASHBOARD_JSON = {
                 "requests": [
                     {
                         "q": "avg:http.request.duration{service:ai_workflow_automation} by {path}",
-                        "display_type": "line"
+                        "display_type": "line",
                     }
-                ]
-            }
+                ],
+            },
         },
         {
             "id": 7,
@@ -112,8 +111,8 @@ DASHBOARD_JSON = {
                     {
                         "q": "sum:http.request.error{service:ai_workflow_automation}.as_count()",
                     }
-                ]
-            }
+                ],
+            },
         },
         {
             "id": 8,
@@ -123,12 +122,12 @@ DASHBOARD_JSON = {
                 "requests": [
                     {
                         "columns": ["timestamp", "status", "service", "message"],
-                        "query": "service:ai_workflow_automation"
+                        "query": "service:ai_workflow_automation",
                     }
-                ]
-            }
-        }
-    ]
+                ],
+            },
+        },
+    ],
 }
 
 
@@ -139,18 +138,21 @@ def get_dashboard_config() -> dict:
 
 def create_dashboard():
     """Create dashboard via Datadog API"""
-    
-    if not DatadogConfig.DATADOG_ENABLED or not DatadogConfig.DATADOG_API_KEY:
-        print("Datadog not enabled")
+
+    if not config.DATADOG_ENABLED or not config.DATADOG_API_KEY:
+        print("Skipping dashboard creation: Datadog monitoring is not enabled or API key is missing")
         return None
-    
+
     try:
         from datadog import api
-        
+
         dashboard = api.Dashboard.create(DASHBOARD_JSON)
         print(f"✓ Dashboard created: {dashboard.get('id')}")
         return dashboard
-        
+
     except Exception as e:
-        print(f"✗ Failed to create dashboard: {str(e)}")
+        print(
+            f"✗ Failed to create Datadog dashboard: {type(e).__name__}: {str(e)}. "
+            "Verify API credentials and Datadog API connectivity."
+        )
         return None
