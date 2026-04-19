@@ -4,7 +4,7 @@
 # AWS ECS and S3 Infrastructure Setup Script
 # Sets up complete AWS resources for AI Workflow Automation application
 # 
-# Usage: bash aws/setup-infrastructure.sh [stage|prod] [region]
+# Usage: bash aws/setup-infrastructure.sh [dev|stage|prod] [region]
 # Example: bash aws/setup-infrastructure.sh stage us-east-1
 ##############################################################################
 
@@ -41,7 +41,7 @@ if ! command -v aws &> /dev/null; then
 fi
 
 # Get environment and region parameters
-ENV=${1:-stage}
+ENV=${1:-dev}
 REGION=${2:-us-east-1}
 
 # Validate environment
