@@ -130,6 +130,56 @@ jobs:
           flags: unittests
           fail_ci_if_error: false
 
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/init_branch' && github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Update ECS task definition
+        run: |
+          aws ecs register-task-definition \
+            --family ai-workflow-automation-dev \
+            --network-mode awsvpc \
+            --requires-compatibilities FARGATE \
+            --cpu 256 \
+            --memory 512 \
+            --execution-role-arn ${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }} \
+            --task-role-arn ${{ secrets.ECS_TASK_ROLE_ARN }} \
+            --container-definitions file://aws/task-definition-dev.json
+      
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ai-workflow-automation-dev \
+            --service ai-workflow-automation-dev \
+            --task-definition ai-workflow-automation-dev \
+            --force-new-deployment
+      
+      - name: Wait for service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ai-workflow-automation-dev \
+            --services ai-workflow-automation-dev
+      
+      - name: Verify deployment
+        run: |
+          echo "✅ Dev deployment completed successfully"
+
   deploy-stage:
     name: Deploy to Staging
     needs: [build, test]
