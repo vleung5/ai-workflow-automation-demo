@@ -3,351 +3,818 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Workflow Automation Demo</title>
+    <title>AI Workflow Automation Demo - S3 Polling</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
+        
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 {
+        
+        .header {
             text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
             margin-bottom: 40px;
-            font-size: 1.1em;
         }
-        .upload-section {
-            background: #f8f9fa;
-            border: 2px dashed #667eea;
-            border-radius: 10px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 30px;
-        }
-        .upload-section:hover {
-            background: #e8eaf6;
-            border-color: #764ba2;
-        }
-        .upload-section.dragover {
-            background: #e8eaf6;
-            border-color: #764ba2;
-            transform: scale(1.02);
-        }
-        input[type="file"] { display: none; }
-        .upload-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-        .upload-text {
-            font-size: 1.1em;
+        
+        h1 {
             color: #333;
+            font-size: 2.5em;
             margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .upload-hint {
-            font-size: 0.9em;
-            color: #999;
-        }
-        .progress-section {
-            display: none;
-            margin: 30px 0;
-        }
-        .progress-section.active {
-            display: block;
-        }
-        .progress-label {
-            margin-bottom: 10px;
-            color: #333;
-            font-weight: bold;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-            display: none;
-        }
-        .stats.active {
-            display: grid;
-        }
-        .stat-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid #667eea;
-        }
-        .stat-label {
-            font-size: 0.9em;
+        
+        .subtitle {
             color: #666;
-            margin-bottom: 5px;
+            font-size: 1.1em;
+            margin-bottom: 10px;
         }
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: bold;
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.running {
+            background: #4caf50;
+        }
+        
+        .status-indicator.stopped {
+            background: #f44336;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button:hover {
             color: #667eea;
         }
-        .results-section {
-            margin-top: 30px;
-            display: none;
+        
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
         }
-        .results-section.active {
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
             display: block;
         }
-        .results-title {
-            font-size: 1.5em;
-            color: #333;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            animation: slideDown 0.3s ease;
         }
-        .result-item {
+        
+        .alert.show {
+            display: flex;
+        }
+        
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+        
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .alert-icon {
+            font-size: 1.5em;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        
+        .stat-unit {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .section {
             background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
         }
-        .result-title {
+        
+        .section-title {
+            font-size: 1.3em;
             font-weight: bold;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .badge {
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .status-value {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+        
+        .status-badge {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 20px;
             font-size: 0.85em;
-            margin-right: 8px;
-            margin-bottom: 8px;
+            font-weight: bold;
         }
-        .badge-urgent { background: #ffebee; color: #c62828; }
-        .badge-normal { background: #e3f2fd; color: #1565c0; }
-        .badge-low { background: #f3e5f5; color: #6a1b9a; }
-        .badge-positive { background: #e8f5e9; color: #2e7d32; }
-        .badge-negative { background: #ffebee; color: #c62828; }
-        .badge-neutral { background: #f5f5f5; color: #616161; }
-        .summary { 
-            font-size: 0.95em;
-            color: #555;
-            font-style: italic;
-            padding: 10px;
+        
+        .badge-running {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .badge-stopped {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .badge-completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .badge-processing {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .badge-failed {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
-            border-radius: 5px;
-            margin-top: 8px;
         }
-        .charts {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+        
+        thead {
+            background: #f5f5f5;
         }
-        .chart { display: none; }
-        .chart.active { display: block; }
+        
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state-text {
+            font-size: 1.1em;
+        }
+        
+        .refresh-rate {
+            text-align: right;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .file-row {
+            display: table-row;
+        }
+        
+        .file-row.new {
+            animation: highlight 1s ease;
+        }
+        
+        @keyframes highlight {
+            from { background: #fff9c4; }
+            to { background: transparent; }
+        }
+        
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        
+        .progress-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+        
+        .key-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+        
+        .key {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .value {
+            color: #333;
+            word-break: break-all;
+            text-align: right;
+            flex: 1;
+            margin-left: 20px;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            color: #667eea;
+            text-decoration: underline dotted;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+            width: 120px;
+            white-space: nowrap;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .tabs {
+                gap: 5px;
+            }
+            
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 AI Workflow Automation</h1>
-        <div class="subtitle">Automated Pipeline for CSV Ingestion, Validation & AI Classification</div>
-        
-        <div class="upload-section" id="uploadSection">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">Drag and drop your CSV file here</div>
-            <div class="upload-hint">or click to select (max 50MB)</div>
-            <input type="file" id="fileInput" accept=".csv">
+        <div class="header">
+            <h1>🤖 AI Workflow Automation</h1>
+            <div class="subtitle">
+                S3 Polling Service - Automatic CSV Processing Pipeline
+                <span class="status-indicator running" id="status-indicator"></span>
+            </div>
         </div>
         
-        <div class="progress-section" id="progressSection">
-            <div class="progress-label">Processing: <span id="progressText">0%</span></div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%">
-                    <span id="progressPercent">0%</span>
+        <div id="alert-container"></div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('status')">📊 Status</button>
+            <button class="tab-button" onclick="switchTab('pending')">📁 Pending Files</button>
+            <button class="tab-button" onclick="switchTab('jobs')">⚙️ Processing Jobs</button>
+            <button class="tab-button" onclick="switchTab('settings')">⚙️ Settings</button>
+        </div>
+        
+        <!-- Status Tab -->
+        <div id="status" class="tab-content active">
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="refreshStatus()">🔄 Refresh Status</button>
+                <button class="btn btn-success" onclick="triggerProcessing()">▶️ Process Pending Files</button>
+                <button class="btn btn-secondary" onclick="startAutoRefresh()">⏱️ Auto Refresh ON</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Polling Status</div>
+                    <div class="stat-value" id="polling-status">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Environment</div>
+                    <div class="stat-value" id="environment">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">API Version</div>
+                    <div class="stat-value" id="api-version">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Poll Interval</div>
+                    <div class="stat-value" id="poll-interval">-</div>
                 </div>
             </div>
+            
+            <div class="section">
+                <div class="section-title">📊 S3 Polling Service Information</div>
+                <div class="status-item">
+                    <span class="status-label">S3 Polling Enabled</span>
+                    <span class="status-value" id="s3-enabled">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">S3 Bucket</span>
+                    <span class="status-value" id="s3-bucket">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">S3 Prefix</span>
+                    <span class="status-value" id="s3-prefix">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Pending Files</span>
+                    <span class="status-value" id="pending-count">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Processed Files</span>
+                    <span class="status-value" id="processed-count">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Jobs</span>
+                    <span class="status-value" id="active-jobs">-</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📈 Performance Metrics</div>
+                <div class="progress-container">
+                    <div class="progress-label">Polling Uptime</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uptime-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="refresh-rate">Last updated: <span id="last-update">never</span> | Auto-refresh: <span id="auto-refresh-status">OFF</span></div>
         </div>
         
-        <div class="stats" id="statsSection">
-            <div class="stat-box">
-                <div class="stat-label">Total Records</div>
-                <div class="stat-value" id="totalRecords">0</div>
+        <!-- Pending Files Tab -->
+        <div id="pending" class="tab-content">
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="refreshPendingFiles()">🔄 Refresh</button>
+                <button class="btn btn-success" onclick="processAllPending()">▶️ Process All</button>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Processed</div>
-                <div class="stat-value" id="processedRecords">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Success Rate</div>
-                <div class="stat-value" id="successRate">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Avg Time/Record</div>
-                <div class="stat-value" id="avgTime">0ms</div>
+            
+            <div class="table-responsive">
+                <table id="pending-table">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Size (KB)</th>
+                            <th>Last Modified</th>
+                            <th>ETag</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-tbody">
+                        <tr><td colspan="5" class="empty-state"><div class="empty-state-icon">📁</div><div class="empty-state-text">No pending files</div></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         
-        <div class="results-section" id="resultsSection">
-            <div class="results-title">📊 Processing Results</div>
-            <div id="resultsList"></div>
+        <!-- Jobs Tab -->
+        <div id="jobs" class="tab-content">
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="refreshJobs()">🔄 Refresh</button>
+                <button class="btn btn-secondary" onclick="clearCompletedJobs()">🗑️ Clear Completed</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="jobs-table">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Status</th>
+                            <th>Total Records</th>
+                            <th>Processed</th>
+                            <th>Success Rate</th>
+                            <th>Started At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobs-tbody">
+                        <tr><td colspan="6" class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-text">No jobs found</div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="section">
+                <div class="section-title">⚙️ Configuration</div>
+                
+                <div class="info-box">
+                    ℹ️ These settings are read from the environment and cannot be changed at runtime.
+                </div>
+                
+                <div id="settings-content">
+                    <div class="key-value">
+                        <span class="key">Environment:</span>
+                        <span class="value" id="setting-env">-</span>
+                    </div>
+                    <div class="key-value">
+                        <span class="key">AWS Region:</span>
+                        <span class="value" id="setting-region">-</span>
+                    </div>
+                    <div class="key-value">
+                        <span class="key">Max Workers:</span>
+                        <span class="value" id="setting-workers">-</span>
+                    </div>
+                    <div class="key-value">
+                        <span class="key">Max File Size (MB):</span>
+                        <span class="value" id="setting-file-size">-</span>
+                    </div>
+                    <div class="key-value">
+                        <span class="key">Log Level:</span>
+                        <span class="value" id="setting-log-level">-</span>
+                    </div>
+                    <div class="key-value">
+                        <span class="key">Secrets Manager:</span>
+                        <span class="value" id="setting-secrets">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📋 S3 Bucket Structure</div>
+                <div class="info-box">
+                    The application uses the following S3 bucket folders for organizing files and results.
+                </div>
+                <div class="key-value">
+                    <span class="key">incoming/</span>
+                    <span class="value">New files waiting to be processed</span>
+                </div>
+                <div class="key-value">
+                    <span class="key">processed/</span>
+                    <span class="value">Successfully processed files</span>
+                </div>
+                <div class="key-value">
+                    <span class="key">failed/</span>
+                    <span class="value">Files that failed processing</span>
+                </div>
+                <div class="key-value">
+                    <span class="key">archived/</span>
+                    <span class="value">Old or archived files</span>
+                </div>
+                <div class="key-value">
+                    <span class="key">results/</span>
+                    <span class="value">Processing results in JSON format</span>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">🚀 Quick Start Guide</div>
+                <ol style="line-height: 1.8; color: #666;">
+                    <li>Upload CSV files to: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">s3://&lt;bucket&gt;/incoming/</code></li>
+                    <li>Application automatically polls every 30 seconds</li>
+                    <li>Files are processed (validated, classified, summarized)</li>
+                    <li>Results saved to: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">results/&lt;timestamp&gt;/</code></li>
+                    <li>Processed files moved to: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">processed/&lt;date&gt;/</code></li>
+                    <li>Monitor progress in the Status and Jobs tabs</li>
+                </ol>
+            </div>
         </div>
     </div>
     
     <script>
-        const uploadSection = document.getElementById('uploadSection');
-        const fileInput = document.getElementById('fileInput');
-        const progressSection = document.getElementById('progressSection');
-        const statsSection = document.getElementById('statsSection');
-        const resultsSection = document.getElementById('resultsSection');
-        let currentJobId = null;
-        let pollInterval = null;
+        const AUTO_REFRESH_INTERVAL = 5000; // 5 seconds
+        let autoRefreshTimer = null;
+        let autoRefreshEnabled = false;
+        const LOCAL_STORAGE_KEY = 'autoRefreshEnabled';
         
-        uploadSection.addEventListener('click', () => fileInput.click());
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.classList.add('dragover');
-        });
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
-        });
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.classList.remove('dragover');
-            handleFile(e.dataTransfer.files[0]);
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files[0]) {
-                handleFile(e.target.files[0]);
-            }
-        });
-        
-        async function handleFile(file) {
-            if (!file.name.endsWith('.csv')) {
-                alert('Please upload a CSV file');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            try {
-                uploadSection.style.display = 'none';
-                progressSection.classList.add('active');
-                
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                currentJobId = data.job_id;
-                
-                pollStatus();
-                pollInterval = setInterval(pollStatus, 500);
-            } catch (error) {
-                alert('Error uploading file: ' + error);
-                location.reload();
+        // Load auto-refresh preference from localStorage
+        function loadAutoRefreshPreference() {
+            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (saved === 'true') {
+                startAutoRefresh();
             }
         }
         
-        async function pollStatus() {
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'status') refreshStatus();
+            else if (tabName === 'pending') refreshPendingFiles();
+            else if (tabName === 'jobs') refreshJobs();
+            else if (tabName === 'settings') refreshSettings();
+        }
+        
+        function showAlert(message, type = 'info', duration = 5000) {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            const icons = {
+                'success': '✓',
+                'error': '✕',
+                'info': 'ℹ'
+            };
+            alert.className = `alert alert-${type} show`;
+            alert.innerHTML = `
+                <span class="alert-icon">${icons[type]}</span>
+                <span>${message}</span>
+            `;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => alert.remove(), duration);
+        }
+        
+        async function refreshStatus() {
             try {
-                const response = await fetch(`/status/${currentJobId}`);
-                const data = await response.json();
+                const [healthRes, s3Res, jobsRes] = await Promise.all([
+                    fetch('/health'),
+                    fetch('/s3/status'),
+                    fetch('/jobs')
+                ]);
                 
-                const progress = data.progress_percent;
-                document.getElementById('progressFill').style.width = progress + '%';
-                document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
-                document.getElementById('progressText').textContent = Math.round(progress) + '%';
-                
-                if (data.status === 'completed') {
-                    clearInterval(pollInterval);
-                    fetchResults();
+                if (!healthRes.ok || !s3Res.ok || !jobsRes.ok) {
+                    throw new Error('API request failed');
                 }
-            } catch (error) {
-                console.error('Error polling status:', error);
-            }
-        }
-        
-        async function fetchResults() {
-            try {
-                const response = await fetch(`/results/${currentJobId}`);
-                const data = await response.json();
                 
-                statsSection.classList.add('active');
-                document.getElementById('totalRecords').textContent = data.summary.total_records;
-                document.getElementById('processedRecords').textContent = data.summary.processed_records;
-                document.getElementById('successRate').textContent = Math.round(data.summary.success_rate) + '%';
-                document.getElementById('avgTime').textContent = Math.round(data.statistics.avg_time_per_record_ms) + 'ms';
+                const health = await healthRes.json();
+                const s3Status = await s3Res.json();
+                const jobs = await jobsRes.json();
                 
-                displayResults(data.results);
-                resultsSection.classList.add('active');
-            } catch (error) {
-                console.error('Error fetching results:', error);
-            }
-        }
-        
-        function displayResults(results) {
-            const resultsList = document.getElementById('resultsList');
-            resultsList.innerHTML = '';
-            
-            results.forEach(result => {
-                const item = document.createElement('div');
-                item.className = 'result-item';
-                
-                const priorityBadge = `<span class="badge badge-${result.classification.priority}">${result.classification.priority.toUpperCase()}</span>`;
-                const sentimentBadge = `<span class="badge badge-${result.classification.sentiment}">${result.classification.sentiment.toUpperCase()}</span>`;
-                
-                item.innerHTML = `
-                    <div class="result-title">Record #${result.id}</div>
-                    <div>
-                        ${priorityBadge}
-                        ${sentimentBadge}
-                        <span class="badge" style="background: #f3e5f5; color: #6a1b9a;">Confidence: ${(result.classification.confidence * 100).toFixed(0)}%</span>
-                    </div>
-                    <div class="summary">${result.summary}</div>
-                `;
-                
-                resultsList.appendChild(item);
-            });
-        }
-    </script>
-</body>
-</html>
+                // Update status indicator
+                const indicator = document.getElementById('status-indicator');
+                if`*
+
