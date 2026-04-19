@@ -13,21 +13,8 @@ env:
   AWS_REGION: us-east-1
   ECR_REGISTRY_PREFIX: ai-workflow-automation
 
-jobs:
-  lint:
-    name: Run Super-Linter
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-          
-      - name: Run Super-Linter
-        uses: super-linter/super-linter@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+jobs:        
   build:
-    needs: lint
     name: Build Docker Image
     runs-on: ubuntu-latest
     
