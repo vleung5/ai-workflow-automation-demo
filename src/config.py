@@ -188,9 +188,8 @@ def get_secrets_from_aws(secret_name: str) -> Dict[str, Any]:
         client = boto3.client("secretsmanager", region_name=region)
         try:
             response = client.get_secret_value(SecretId=secret_name)
-        except ClientError as e:
-            logger.error("Error retrieving secret %s", secret_name)
-            logger.debug("ClientError details: %s", str(e))
+        except ClientError:
+            logger.error("Error retrieving secret from AWS Secrets Manager")
             return {}
         if "SecretString" in response:
             return json.loads(response["SecretString"])
