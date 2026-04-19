@@ -117,7 +117,7 @@ jobs:
         run: |
           pip install ruff
           ruff format --check .
-          ruff check .
+          ruff check --fix .
       
       - name: Run tests
         run: |
