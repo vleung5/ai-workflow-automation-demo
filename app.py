@@ -13,7 +13,7 @@ import time
 from models import JobStatus
 from tasks import processor
 from s3_polling import initialize_s3_polling, get_s3_polling_service
-from config import config
+from src.config import config
 from datadog_config import (
     initialize_datadog, 
     setup_structured_logging,

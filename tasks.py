@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 from models import ProcessedRecord, JobResult, ValidationResult, RecordClassification, PriorityLevel, SentimentType, JobStatus
-from config import config
+from src.config import config
 
 logger = logging.getLogger(__name__)
 
