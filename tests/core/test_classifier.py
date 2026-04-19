@@ -5,7 +5,11 @@ from src.models.enums import PriorityLevel, SentimentType
 
 
 def test_classify_urgent_priority():
-    record = {"description": "CRITICAL server outage", "category": "issue", "priority": "urgent"}
+    record = {
+        "description": "CRITICAL server outage",
+        "category": "issue",
+        "priority": "urgent",
+    }
     result = classify_record(record)
     assert result.priority == PriorityLevel.URGENT
 

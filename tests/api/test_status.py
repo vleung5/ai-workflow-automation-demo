@@ -3,9 +3,10 @@
 
 def test_status_not_found():
     """Returns not_found for unknown job IDs"""
-    from src.api.v1.status import get_status
     import asyncio
     from unittest.mock import patch
+
+    from src.api.v1.status import get_status
 
     with patch("src.api.v1.status.processor") as mock_proc:
         mock_proc.get_job_status.return_value = None
@@ -18,7 +19,8 @@ def test_status_not_found():
 def test_status_found():
     """Returns job data for known job IDs"""
     import asyncio
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
+
     from src.models.enums import JobStatus
 
     mock_job = MagicMock()

@@ -1,6 +1,6 @@
 """Tests for CSV parsing utilities"""
 
-from src.utils.csv_parser import parse_csv_content, validate_csv_headers, rows_to_csv
+from src.utils.csv_parser import parse_csv_content, rows_to_csv, validate_csv_headers
 
 
 def test_parse_valid_csv():

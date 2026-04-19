@@ -1,9 +1,11 @@
 """Tests for Pydantic schemas"""
 
-import pytest
-from src.models.schemas import ValidationResult, RecordClassification, JobResult
-from src.models.enums import PriorityLevel, SentimentType, JobStatus
 from datetime import datetime
+
+import pytest
+
+from src.models.enums import JobStatus, PriorityLevel, SentimentType
+from src.models.schemas import JobResult, RecordClassification, ValidationResult
 
 
 def test_validation_result_valid():

@@ -3,9 +3,9 @@
 from unittest.mock import patch
 
 from src.services.datadog_service import (
+    WorkflowMonitor,
     get_datadog_tags,
     send_datadog_event,
-    WorkflowMonitor,
 )
 
 

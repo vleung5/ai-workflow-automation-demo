@@ -1,7 +1,7 @@
 """Data validation rules - decoupled from FastAPI"""
 
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 from src.models.schemas import ValidationResult
 

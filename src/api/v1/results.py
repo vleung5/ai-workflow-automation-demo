@@ -20,7 +20,11 @@ async def get_results(job_id: str):
         return {"job_id": job_id, "status": "not_found", "message": "Job not found"}
 
     if job.status == JobStatus.PROCESSING:
-        return {"job_id": job_id, "status": "processing", "message": "Job still processing"}
+        return {
+            "job_id": job_id,
+            "status": "processing",
+            "message": "Job still processing",
+        }
 
     if job.status == JobStatus.FAILED:
         send_datadog_metric("job.failed", 1, "increment")
@@ -64,6 +68,7 @@ async def get_results(job_id: str):
 async def get_metrics():
     """Get application metrics"""
     import time
+
     from src.services.s3_service import get_s3_polling_service
 
     jobs = processor.jobs

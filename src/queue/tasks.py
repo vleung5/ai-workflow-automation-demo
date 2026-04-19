@@ -3,8 +3,8 @@
 import asyncio
 import logging
 
-from src.queue.celery_app import celery_app
 from src.core.processor import processor
+from src.queue.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
