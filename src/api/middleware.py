@@ -8,7 +8,7 @@ from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.services.datadog_service import send_datadog_metric, get_datadog_tags
+from src.services.datadog_service import get_datadog_tags, send_datadog_metric
 
 logger = logging.getLogger(__name__)
 

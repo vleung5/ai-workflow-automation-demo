@@ -1,11 +1,11 @@
 """AI classification and summarization - decoupled from FastAPI"""
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
+from src.config import config
 from src.models.enums import PriorityLevel, SentimentType
 from src.models.schemas import RecordClassification
-from src.config import config
 
 logger = logging.getLogger(__name__)
 

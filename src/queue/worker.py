@@ -2,8 +2,8 @@
 
 import logging
 
-from src.queue.celery_app import celery_app
 from src.logging_config import setup_logging
+from src.queue.celery_app import celery_app
 
 setup_logging()
 logger = logging.getLogger(__name__)

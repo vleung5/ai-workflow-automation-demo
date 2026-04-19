@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
 from src.config import config
 
@@ -27,7 +27,8 @@ def initialize_datadog() -> bool:
             )
             logger.info("Datadog API initialized")
 
-        from ddtrace import config as dd_config, patch
+        from ddtrace import config as dd_config
+        from ddtrace import patch
 
         patch(fastapi=True, boto3=True, botocore=True)
 
@@ -53,7 +54,9 @@ def initialize_datadog() -> bool:
         return False
 
 
-def get_datadog_tags(additional_tags: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+def get_datadog_tags(
+    additional_tags: Optional[Dict[str, str]] = None,
+) -> Dict[str, str]:
     """Return merged Datadog tags dictionary"""
     tags = config.get_datadog_tags()
     if additional_tags:

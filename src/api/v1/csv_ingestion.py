@@ -3,11 +3,11 @@
 import logging
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from src.core.processor import processor
-from src.services.datadog_service import send_datadog_metric, send_datadog_event
 from src.config import config
+from src.core.processor import processor
+from src.services.datadog_service import send_datadog_event, send_datadog_metric
 
 router = APIRouter(tags=["csv-ingestion"])
 logger = logging.getLogger(__name__)

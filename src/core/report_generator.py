@@ -1,11 +1,11 @@
 """Report creation from processed job results"""
 
 import logging
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List
 
-from src.models.schemas import JobResult, ProcessedRecord
 from src.models.enums import JobStatus
+from src.models.schemas import JobResult, ProcessedRecord
 
 logger = logging.getLogger(__name__)
 

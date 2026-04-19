@@ -16,20 +16,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.11"
+          version: "latest"
 
-      - name: Install linting tools
-        run: pip install black flake8
+      - name: Set up Python 3.11
+        run: uv python install 3.11
 
-      - name: Check formatting with black
-        run: black --check --line-length 100 src/ tests/ scripts/
+      - name: Install ruff
+        run: uv tool install ruff
 
-      - name: Lint with flake8
+      - name: Auto-fix with ruff
         run: |
-          flake8 src/ tests/ scripts/ \
-            --max-line-length=100 \
-            --extend-ignore=E203,W503 \
-            --exclude=__pycache__,.git
+          uv tool run ruff format src/ tests/ scripts/
+          uv tool run ruff check --fix src/ tests/ scripts/
+
+      - name: Check for remaining issues
+        run: |
+          uv tool run ruff format --check src/ tests/ scripts/
+          uv tool run ruff check src/ tests/ scripts/

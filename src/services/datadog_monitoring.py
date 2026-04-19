@@ -2,9 +2,9 @@
 
 import logging
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
-from src.services.datadog_service import send_datadog_metric, send_datadog_event
+from src.services.datadog_service import send_datadog_event, send_datadog_metric
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +64,7 @@ class WorkflowMonitor:
             {"end_time": time.time(), "status": status, "duration": duration}
         )
 
-    def track_s3_operation(
-        self, operation: str, success: bool = True, duration: float = 0
-    ) -> None:
+    def track_s3_operation(self, operation: str, success: bool = True, duration: float = 0) -> None:
         """Track S3 operations"""
         if not success:
             self.s3_operations["failed"] += 1
@@ -75,9 +73,7 @@ class WorkflowMonitor:
             self.s3_operations[operation] = self.s3_operations.get(operation, 0) + 1
             send_datadog_metric(f"s3.operation.{operation}", 1, "increment")
             if duration > 0:
-                send_datadog_metric(
-                    f"s3.operation.{operation}.duration", duration, "gauge"
-                )
+                send_datadog_metric(f"s3.operation.{operation}.duration", duration, "gauge")
 
     def track_record_processing(self, total: int, successful: int, failed: int) -> None:
         """Track record processing statistics"""

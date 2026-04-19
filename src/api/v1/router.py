@@ -2,8 +2,7 @@
 
 from fastapi import APIRouter
 
-from src.api.v1 import csv_ingestion, status, results
-from src.api.v1 import s3_routes
+from src.api.v1 import csv_ingestion, results, s3_routes, status
 
 router = APIRouter(prefix="/v1")
 

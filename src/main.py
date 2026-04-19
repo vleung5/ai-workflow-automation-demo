@@ -8,14 +8,18 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from src.config import config
-from src.logging_config import setup_logging
-from src.services.datadog_service import initialize_datadog, send_datadog_event, send_datadog_metric
-from src.services.s3_service import initialize_s3_polling, get_s3_polling_service
-from src.core.processor import processor
-from src.api.middleware import DatadogAPMMiddleware, add_cors_middleware
 from src.api.health import router as health_router
+from src.api.middleware import DatadogAPMMiddleware, add_cors_middleware
 from src.api.v1.router import router as v1_router
+from src.config import config
+from src.core.processor import processor
+from src.logging_config import setup_logging
+from src.services.datadog_service import (
+    initialize_datadog,
+    send_datadog_event,
+    send_datadog_metric,
+)
+from src.services.s3_service import get_s3_polling_service, initialize_s3_polling
 
 # Configure logging first
 setup_logging()

@@ -4,9 +4,9 @@ import logging
 
 from fastapi import APIRouter
 
-from src.services.s3_service import get_s3_polling_service
-from src.services.datadog_service import send_datadog_metric, send_datadog_event
 from src.core.processor import processor
+from src.services.datadog_service import send_datadog_event, send_datadog_metric
+from src.services.s3_service import get_s3_polling_service
 
 router = APIRouter(prefix="/s3", tags=["s3"])
 logger = logging.getLogger(__name__)
@@ -79,4 +79,7 @@ async def trigger_s3_processing():
     except Exception as e:
         logger.error(f"Error triggering S3 processing: {str(e)}")
         send_datadog_metric("s3.file.processing_error", 1, "increment")
-        return {"success": False, "message": "An error occurred while processing the S3 file"}
+        return {
+            "success": False,
+            "message": "An error occurred while processing the S3 file",
+        }

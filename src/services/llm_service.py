@@ -1,7 +1,7 @@
 """LLM API calls - OpenAI/Claude integration"""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,10 @@ class LLMService:
         if self.provider == "openai":
             return await self._openai_classify(text, categories)
         # Fallback: return first category with low confidence
-        return {"category": categories[0] if categories else "unknown", "confidence": 0.5}
+        return {
+            "category": categories[0] if categories else "unknown",
+            "confidence": 0.5,
+        }
 
     async def _openai_summarize(self, text: str, max_length: int) -> str:
         """Call OpenAI API for summarization"""
@@ -85,10 +88,16 @@ class LLMService:
             return {"category": category, "confidence": 0.9}
         except ImportError:
             logger.warning("openai package not installed; using fallback classification")
-            return {"category": categories[0] if categories else "unknown", "confidence": 0.5}
+            return {
+                "category": categories[0] if categories else "unknown",
+                "confidence": 0.5,
+            }
         except Exception as e:
             logger.error(f"OpenAI classification failed: {str(e)}")
-            return {"category": categories[0] if categories else "unknown", "confidence": 0.5}
+            return {
+                "category": categories[0] if categories else "unknown",
+                "confidence": 0.5,
+            }
 
 
 # Module-level singleton
