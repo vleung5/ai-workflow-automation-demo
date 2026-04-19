@@ -78,4 +78,4 @@ async def trigger_s3_processing():
     except Exception as e:
         logger.error(f"Error triggering S3 processing: {str(e)}")
         send_datadog_metric("s3.file.processing_error", 1, "increment")
-        return {"success": False, "message": f"Error: {str(e)}"}
+        return {"success": False, "message": "An error occurred while processing the S3 file"}

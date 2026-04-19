@@ -18,7 +18,7 @@ def process_csv_task(self, csv_content: str, job_id: str) -> dict:
         job_id: Unique job identifier.
 
     Returns:
-        Serialised JobResult dict.
+        Serialized JobResult dict.
     """
     try:
         loop = asyncio.get_event_loop()

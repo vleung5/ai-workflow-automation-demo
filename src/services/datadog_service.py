@@ -17,7 +17,7 @@ def initialize_datadog() -> bool:
     logger.info("Initializing Datadog APM and Monitoring...")
 
     try:
-        from datadog import initialize, api  # noqa: F401
+        from datadog import initialize  # noqa: F401
 
         if config.DATADOG_API_KEY and config.DATADOG_APP_KEY:
             initialize(

@@ -189,7 +189,8 @@ def get_secrets_from_aws(secret_name: str) -> Dict[str, Any]:
         try:
             response = client.get_secret_value(SecretId=secret_name)
         except ClientError as e:
-            logger.error(f"Error retrieving secret {secret_name}: {str(e)}")
+            logger.error("Error retrieving secret %s", secret_name)
+            logger.debug("ClientError details: %s", str(e))
             return {}
         if "SecretString" in response:
             return json.loads(response["SecretString"])

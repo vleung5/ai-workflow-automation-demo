@@ -41,7 +41,7 @@ def classify_record(record: Dict[str, Any]) -> RecordClassification:
         sentiment = SentimentType.NEUTRAL
         confidence = 0.7
 
-    # Category normalisation
+    # Category normalization
     category = record.get("category", "inquiry").lower()
     if category not in {"inquiry", "complaint", "feedback", "request", "issue"}:
         category = "inquiry"

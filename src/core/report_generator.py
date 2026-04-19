@@ -17,7 +17,7 @@ def generate_job_report(job: JobResult) -> Dict[str, Any]:
         job: Completed JobResult object.
 
     Returns:
-        Report dictionary suitable for JSON serialisation or display.
+        Report dictionary suitable for JSON serialization or display.
     """
     if job.status not in (JobStatus.COMPLETED, JobStatus.FAILED):
         return {
