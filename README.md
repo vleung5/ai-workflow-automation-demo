@@ -21,4 +21,24 @@ An automated pipeline utilizing asynchronous processing, combined with AI classi
 To get started: 
 1. Clone the repository.
 2. Install the required dependencies.
-3. Run the application using the provided commands in the documentation.
+3. Run the application using the provided commands below.
+
+## Quick Start Commands
+### Local development
+docker-compose up app-dev
+
+### Staging environment
+docker-compose up app-stage
+
+### Production (local test)
+docker-compose up app-prod
+
+### Setup AWS infrastructure
+bash aws/setup-infrastructure.sh stage us-east-1
+bash aws/setup-infrastructure.sh prod us-east-1
+
+### Build and push to ECR manually
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+docker build -t ai-workflow-automation-stage:latest .
+docker tag ai-workflow-automation-stage:latest YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ai-workflow-automation-stage:latest
+docker push YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/ai-workflow-automation-stage:latest
