@@ -240,10 +240,6 @@ jobs:
       contents: read
       id-token: write
     
-    environment:
-      name: production
-      url: https://api.workflow-automation.example.com
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
