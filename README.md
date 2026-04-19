@@ -37,6 +37,53 @@ docker-compose up app-prod
 bash aws/setup-infrastructure.sh stage us-east-1
 bash aws/setup-infrastructure.sh prod us-east-1
 
+## Local AWS Mocking with Moto
+
+[Moto](https://github.com/getmoto/moto) intercepts Boto3 calls and replaces them with
+in-memory AWS service implementations, so you can develop and test AWS integrations
+without real credentials or cloud resources.
+
+### Install dev/testing dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+`moto[s3]` and `pytest` are already included in `requirements.txt` under the
+dev/testing section.
+
+### Run tests locally
+
+```bash
+# Run the full test suite
+pytest tests/
+
+# Run only the Moto S3 mock tests
+pytest tests/test_moto_s3.py -v
+```
+
+### How it works
+
+Each test that needs a mocked AWS service uses the `@mock_aws` decorator (or the
+`mock_aws()` context manager) from `moto`.  Within that scope every Boto3 call is
+routed to Moto's in-memory backend instead of AWS:
+
+```python
+import boto3
+from moto import mock_aws
+
+@mock_aws
+def test_example():
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket="my-bucket")
+    s3.put_object(Bucket="my-bucket", Key="hello.txt", Body=b"world")
+    response = s3.get_object(Bucket="my-bucket", Key="hello.txt")
+    assert response["Body"].read() == b"world"
+```
+
+See `tests/test_moto_s3.py` for working examples.  Add new test files alongside it
+as additional AWS services (DynamoDB, SQS, etc.) are introduced to the project.
+
 ### Build and push to ECR manually
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 docker build -t ai-workflow-automation-stage:latest .

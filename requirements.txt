@@ -12,3 +12,7 @@ structlog>=23.0.0
 celery>=5.3.0
 redis>=5.0.0
 pyyaml>=6.0
+
+# Dev/testing dependencies
+moto[s3]>=5.0.0
+pytest>=7.0.0
