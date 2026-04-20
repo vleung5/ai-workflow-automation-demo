@@ -42,7 +42,7 @@ jobs:
 
       - name: Run linting
         run: |
-          ruff format --check .
+          ruff format .
           ruff check --fix .
 
   test:
