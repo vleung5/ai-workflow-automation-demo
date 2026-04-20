@@ -48,7 +48,7 @@ services:
   app-local:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.local
     container_name: ai-workflow-automation-local
     depends_on:
       - localstack
@@ -77,7 +77,7 @@ services:
   app-dev:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: ai-workflow-automation-dev
     depends_on:
       - datadog-agent
