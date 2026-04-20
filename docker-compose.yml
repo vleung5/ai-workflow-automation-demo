@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+  # Mock AWS Environments
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+
   # Datadog Agent
   datadog-agent:
     image: gcr.io/datadoghq/agent:latest
@@ -32,6 +41,35 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Local environment
+  app-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ai-workflow-automation-local
+    depends_on:
+      - localstack
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=dev
+      - DEBUG=True
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=DEBUG
+      - AWS_SECRETS_MANAGER_ENABLED=False
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Development environment
   app-dev:
